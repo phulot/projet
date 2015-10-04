@@ -42,9 +42,9 @@ public class Main {
 				return t;
 			}
 		});
-		final Model model = new Model();
+		final Model model = new Model(); 
 		try {
-			model.train(trainset, 2, sc);
+			model.train(trainset, 3, sc);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -65,11 +65,11 @@ public class Main {
 				return t._1().equals(t._2());
 			}
 		}).count();
-		System.out.println("% de prediction" + nbon/(double)ntot);
+		System.out.println("% de prediction : " + nbon*100/(double)ntot);
 	}
 	
 	public static JavaRDD<Tuple2<Double, Vector>> getData(JavaSparkContext sc){
-		JavaRDD<String> data = sc.textFile("PixTup.csv");
+		JavaRDD<String> data = sc.textFile("C:/Users/admin/Documents/Projet3A - Polarimetrie de Mueller/PixTup.csv");
 		JavaRDD<String[]> databis = data.map(new Function<String, String[]>() {
 			public String[] call(String t) throws Exception {
 				return t.split(",");
