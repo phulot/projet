@@ -28,6 +28,7 @@ public class Main {
 				return new Tuple2<String,Tuple2<Vector,Double>>("id",new Tuple2<Vector,Double>(t._2,t._1));
 			}
 		});
+		toModel=equilibrer(toModel);
 		long nt = toModel.count();
 		long n = toModel.filter(new Function<Tuple2<String, Tuple2<Vector, Double>>, Boolean>() {
 			public Boolean call(Tuple2<String, Tuple2<Vector, Double>> t) throws Exception {
@@ -51,12 +52,14 @@ public class Main {
 				return t;
 			}
 		});
+		System.out.println("training...");
 		final Model model = new Model(); 
 		try {
 			model.train(trainset, 3, sc);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		System.out.println("testing...");
 		JavaRDD<Tuple2<Double,Double>> results = sets[1].map(new Function<Tuple2<String, Tuple2<Vector, Double>>, Tuple2<Double, Double>>() {
 			public Tuple2<Double, Double> call(Tuple2<String, Tuple2<Vector, Double>> t) throws Exception {
 				return new Tuple2<Double,Double>(model.predict(t._2._1),t._2._2);
@@ -110,6 +113,44 @@ public class Main {
 		System.out.println("% de prediction : "+totv/(double)tot);
 		System.out.println("% de vp (sensibilité): "+totvp/(double)totpos);
 		System.out.println("% de vn (specificité): "+totvn/(double)totneg);
-		
+	}
+	
+	public static JavaPairRDD<String,Tuple2<Vector,Double>> equilibrer(JavaPairRDD<String,Tuple2<Vector,Double>> data){
+		JavaPairRDD<String,Tuple2<Vector,Double>> pos = data.filter(new Function<Tuple2<String, Tuple2<Vector, Double>>, Boolean>() {
+			public Boolean call(Tuple2<String, Tuple2<Vector, Double>> t) throws Exception {
+				return t._2._2.equals(1d);
+			}
+		});
+		JavaPairRDD<String,Tuple2<Vector,Double>> neg = data.filter(new Function<Tuple2<String, Tuple2<Vector, Double>>, Boolean>() {
+			public Boolean call(Tuple2<String, Tuple2<Vector, Double>> t) throws Exception {
+				return t._2._2.equals(0d);
+			}
+		});
+		long npos = pos.count();
+		long nneg = neg.count();
+		if (npos>nneg){
+			double[] r = new double[]{nneg/(double)(npos),1-nneg/(double)(npos)};
+			return pos.map(new Function<Tuple2<String, Tuple2<Vector, Double>>, Tuple2<String, Tuple2<Vector, Double>>>() {
+				public Tuple2<String, Tuple2<Vector, Double>> call(Tuple2<String, Tuple2<Vector, Double>> t) throws Exception {
+					return t;
+				}
+			}).randomSplit(r)[0].mapToPair(new PairFunction<Tuple2<String, Tuple2<Vector, Double>>, String, Tuple2<Vector, Double>>() {
+				public Tuple2<String, Tuple2<Vector, Double>> call(Tuple2<String, Tuple2<Vector, Double>> t) throws Exception {
+					return t;
+				}
+			}).union(neg);
+		}
+		else {
+			double[] r = new double[]{npos/(double)(nneg),1-npos/(double)(nneg)};
+			return neg.map(new Function<Tuple2<String, Tuple2<Vector, Double>>, Tuple2<String, Tuple2<Vector, Double>>>() {
+				public Tuple2<String, Tuple2<Vector, Double>> call(Tuple2<String, Tuple2<Vector, Double>> t) throws Exception {
+					return t;
+				}
+			}).randomSplit(r)[0].mapToPair(new PairFunction<Tuple2<String, Tuple2<Vector, Double>>, String, Tuple2<Vector, Double>>() {
+				public Tuple2<String, Tuple2<Vector, Double>> call(Tuple2<String, Tuple2<Vector, Double>> t) throws Exception {
+					return t;
+				}
+			}).union(pos);			
+		}
 	}
 }
