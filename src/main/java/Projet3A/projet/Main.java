@@ -11,23 +11,36 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.mllib.linalg.Vectors;
+
+import Projet3A.Properties.ProjectProperties;
+
 import org.apache.spark.mllib.linalg.Vector;
 
 import scala.Tuple2;
 
 public class Main {
 	public static void main(String[] args) {
+		/*
+		 * initialisation
+		 */
 		Logger.getLogger("org").setLevel(Level.OFF);
 		Logger.getLogger("akka").setLevel(Level.OFF);
 		SparkConf conf = new SparkConf().setAppName("sentiments");
 			conf.setMaster("local[2]");
 		JavaSparkContext sc = new JavaSparkContext(conf);
-		JavaRDD<Tuple2<Double, Vector>> data = getData(sc);
+		ProjectProperties prop =new ProjectProperties();
+		/*
+		 * récuperation des données
+		 */
+		JavaRDD<Tuple2<Double, Vector>> data = getData(sc,prop);
 		JavaPairRDD<String,Tuple2<Vector,Double>> toModel = data.mapToPair(new PairFunction<Tuple2<Double, Vector>, String, Tuple2<Vector, Double>>() {
 			public Tuple2<String, Tuple2<Vector, Double>> call(Tuple2<Double, Vector> t) throws Exception {
 				return new Tuple2<String,Tuple2<Vector,Double>>("id",new Tuple2<Vector,Double>(t._2,t._1));
 			}
 		});
+		/*
+		 * filtrage pour rééquilibrer
+		 */
 		toModel=equilibrer(toModel);
 		long nt = toModel.count();
 		long n = toModel.filter(new Function<Tuple2<String, Tuple2<Vector, Double>>, Boolean>() {
@@ -35,30 +48,35 @@ public class Main {
 				return t._2._2.equals(0d);
 			}
 		}).count();
-		System.out.println(n);
-		System.out.println(nt-n);
 		System.out.println(n/(double)nt+" % de pixels malades");
+		/*
+		 * séparation en train/test
+		 */
 		double[] r = new double[]{0.75,0.25};
 		JavaRDD<Tuple2<String,Tuple2<Vector,Double>>>[] sets = toModel.map(new Function<Tuple2<String, Tuple2<Vector, Double>>, Tuple2<String, Tuple2<Vector, Double>>>() {
 					public Tuple2<String, Tuple2<Vector, Double>> call(Tuple2<String, Tuple2<Vector, Double>> t) throws Exception {
 						return t;
 					}
 				}).randomSplit(r);
-//		System.out.println(sets[0].count());
-//		System.out.println(sets[1].count());
 		JavaPairRDD<String,Tuple2<Vector,Double>> trainset = sets[0].mapToPair(new PairFunction<Tuple2<String, Tuple2<Vector, Double>>, String, Tuple2<Vector, Double>>() {
 			public Tuple2<String, Tuple2<Vector, Double>> call(Tuple2<String, Tuple2<Vector, Double>> t)
 					throws Exception {
 				return t;
 			}
 		});
+		/*
+		 * creation du modèle
+		 */
 		System.out.println("training...");
 		final Model model = new Model(); 
 		try {
-			model.train(trainset, 3, sc);
+			model.train(trainset, prop.getModel(), sc);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		/*
+		 * test du modèle
+		 */
 		System.out.println("testing...");
 		JavaRDD<Tuple2<Double,Double>> results = sets[1].map(new Function<Tuple2<String, Tuple2<Vector, Double>>, Tuple2<Double, Double>>() {
 			public Tuple2<Double, Double> call(Tuple2<String, Tuple2<Vector, Double>> t) throws Exception {
@@ -68,8 +86,8 @@ public class Main {
 		stat(results);
 	}
 	
-	public static JavaRDD<Tuple2<Double, Vector>> getData(JavaSparkContext sc){
-		JavaRDD<String> data = sc.textFile("C:/Users/admin/Documents/Projet3A - Polarimetrie de Mueller/PixTup.csv");
+	public static JavaRDD<Tuple2<Double, Vector>> getData(JavaSparkContext sc,ProjectProperties prop){
+		JavaRDD<String> data = sc.textFile(prop.getPathToFile());
 		JavaRDD<String[]> databis = data.map(new Function<String, String[]>() {
 			public String[] call(String t) throws Exception {
 				return t.split(",");
