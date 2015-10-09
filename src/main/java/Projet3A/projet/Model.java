@@ -20,8 +20,11 @@ import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.Vectors;
 import org.apache.spark.mllib.regression.LabeledPoint;
 import org.apache.spark.mllib.tree.DecisionTree;
+import org.apache.spark.mllib.tree.GradientBoostedTrees;
 import org.apache.spark.mllib.tree.RandomForest;
+import org.apache.spark.mllib.tree.configuration.BoostingStrategy;
 import org.apache.spark.mllib.tree.model.DecisionTreeModel;
+import org.apache.spark.mllib.tree.model.GradientBoostedTreesModel;
 import org.apache.spark.mllib.tree.model.RandomForestModel;
 import org.apache.spark.rdd.RDD;
 
@@ -45,6 +48,7 @@ public class Model implements Serializable {
 	DecisionTreeModel decisionTreeModel;
 	RandomForestModel forest;
 	LogisticRegressionModel logReg;
+	GradientBoostedTreesModel boostedTree;
 //	NeuralNetworkModel neural;
 	
 	public Model (){
@@ -140,6 +144,19 @@ public class Model implements Serializable {
 			System.out.println("logistic regression");
 			logReg=LogisticRegressionWithSGD.train(trainSet.rdd(), 100);
 		}
+		if (model==5){
+			modeltype=5;
+			System.out.println("Boosting tree");
+			BoostingStrategy boostingStrategy = BoostingStrategy.defaultParams("Classification");
+			boostingStrategy.setNumIterations(props.getNumIteration()); // Note: Use more iterations in practice.
+			boostingStrategy.getTreeStrategy().setNumClasses(props.getNumClasses());
+			boostingStrategy.getTreeStrategy().setMaxDepth(props.getMaxDepth());
+			//  Empty categoricalFeaturesInfo indicates all features are continuous.
+			Map<Integer, Integer> categoricalFeaturesInfo = new HashMap<Integer, Integer>();
+			boostingStrategy.treeStrategy().setCategoricalFeaturesInfo(categoricalFeaturesInfo);
+
+			boostedTree = GradientBoostedTrees.train(trainSet, boostingStrategy);
+		}
 		/*if (model==5){
 			modeltype=5;
 			System.out.println("neural network");
@@ -180,6 +197,9 @@ public class Model implements Serializable {
 		if (modeltype==4){
 			return logReg.predict(v);
 		}
+		if (modeltype==5){
+			return boostedTree.predict(v);
+		}
 		/*if (modeltype==5){
 			double[] ta = v.toArray();
 //			for (int i = 0;i<ta.length;i++){
@@ -193,11 +213,23 @@ public class Model implements Serializable {
 	}
 	
 	public void save(JavaSparkContext sc,ProjectProperties props){
+		if (modeltype==0){
+			NBmodel.save(sc.sc(), props.getPathToModel());
+		}
+		if (modeltype==1){
+			SVMmodel.save(sc.sc(), props.getPathToModel());
+		}
 		if (modeltype==2){
 			decisionTreeModel.save(sc.sc(), props.getPathToModel());
 		}
 		if (modeltype==3){
 			forest.save(sc.sc(), props.getPathToModel());
+		}
+		if (modeltype==4){
+			logReg.save(sc.sc(), props.getPathToModel());
+		}
+		if (modeltype==5){
+			boostedTree.save(sc.sc(), props.getPathToModel());
 		}
 	}
 	/*public JavaPairRDD<String, Tuple3<Double, Double, Double>> predict(JavaPairRDD<String, Tuple2<Vector, Double>> VectorizesTweets,double pond){

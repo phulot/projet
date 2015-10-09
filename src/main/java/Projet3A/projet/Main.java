@@ -42,13 +42,13 @@ public class Main {
 		 * filtrage pour rééquilibrer
 		 */
 		toModel=equilibrer(toModel);
-		long nt = toModel.count();
-		long n = toModel.filter(new Function<Tuple2<String, Tuple2<Vector, Double>>, Boolean>() {
-			public Boolean call(Tuple2<String, Tuple2<Vector, Double>> t) throws Exception {
-				return t._2._2.equals(0d);
-			}
-		}).count();
-		System.out.println(n/(double)nt+" % de pixels malades");
+//		long nt = toModel.count();
+//		long n = toModel.filter(new Function<Tuple2<String, Tuple2<Vector, Double>>, Boolean>() {
+//			public Boolean call(Tuple2<String, Tuple2<Vector, Double>> t) throws Exception {
+//				return t._2._2.equals(0d);
+//			}
+//		}).count();
+//		System.out.println(n/(double)nt+" % de pixels malades");
 		/*
 		 * séparation en train/test
 		 */
@@ -74,14 +74,16 @@ public class Main {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		model.save(sc, prop);
+//		model.save(sc, prop);
 		/*
 		 * test du modèle
 		 */
 		System.out.println("testing...");
 		JavaRDD<Tuple2<Double,Double>> results = sets[1].map(new Function<Tuple2<String, Tuple2<Vector, Double>>, Tuple2<Double, Double>>() {
 			public Tuple2<Double, Double> call(Tuple2<String, Tuple2<Vector, Double>> t) throws Exception {
-				return new Tuple2<Double,Double>(model.predict(t._2._1),t._2._2);
+				double x= model.predict(t._2._1);
+//				System.out.println(x);
+				return new Tuple2<Double,Double>(x,t._2._2);
 			}
 		});
 		stat(results);

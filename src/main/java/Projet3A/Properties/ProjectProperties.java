@@ -18,6 +18,9 @@ public class ProjectProperties implements Serializable{
 	Integer maxBins;
 	Integer seed;
 	String PathToModel;
+	Integer numIteration;
+
+
 
 	public ProjectProperties(){
 		Properties properties = new Properties();
@@ -34,6 +37,7 @@ public class ProjectProperties implements Serializable{
 		this.PathToFile =properties.getProperty("PathToFile");
 		model = Integer.valueOf(properties.getProperty("model"));
 		numClasses = Integer.valueOf(properties.getProperty("numClasses"));
+		numIteration = Integer.valueOf(properties.getProperty("numIteration"));
 		numTrees = Integer.valueOf(properties.getProperty("numClasses"));
 		maxDepth = Integer.valueOf(properties.getProperty("maxDepth"));
 		maxBins = Integer.valueOf(properties.getProperty("maxBins"));
@@ -42,8 +46,16 @@ public class ProjectProperties implements Serializable{
 		impurity = properties.getProperty("impurity");
 		PathToModel = properties.getProperty("PathToModel");
 	}
-
 	
+	public Integer getNumIteration() {
+		return numIteration;
+	}
+
+
+	public void setNumIteration(Integer numIteration) {
+		this.numIteration = numIteration;
+	}
+
 	public String getPathToModel() {
 		return PathToModel;
 	}
