@@ -74,6 +74,7 @@ public class Main {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		model.save(sc, prop);
 		/*
 		 * test du modèle
 		 */

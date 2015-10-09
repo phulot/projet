@@ -191,6 +191,15 @@ public class Model implements Serializable {
 		}*/
 		return -1d;
 	}
+	
+	public void save(JavaSparkContext sc,ProjectProperties props){
+		if (modeltype==2){
+			decisionTreeModel.save(sc.sc(), props.getPathToModel());
+		}
+		if (modeltype==3){
+			forest.save(sc.sc(), props.getPathToModel());
+		}
+	}
 	/*public JavaPairRDD<String, Tuple3<Double, Double, Double>> predict(JavaPairRDD<String, Tuple2<Vector, Double>> VectorizesTweets,double pond){
 //		List<Tuple2<String, Tuple2<Vector, Double>>> temp = VectorizesTweets.collect();
 //		VectorizesTweets.saveAsObjectFile("testSet 200000");
