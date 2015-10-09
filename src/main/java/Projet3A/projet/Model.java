@@ -126,7 +126,7 @@ public class Model implements Serializable {
 			Integer numTrees = props.getNumTrees();
 			String featureSubsetStrategy = props.getFeatureSubsetStrategy();
 			
-			String impurity = "gini";
+			String impurity = props.getImpurity();
 			Integer maxDepth = props.getMaxDepth();
 			Integer maxBins = props.getMaxBins();
 			Integer seed = props.getSeed();
