@@ -70,7 +70,7 @@ public class Main {
 		System.out.println("training...");
 		final Model model = new Model(); 
 		try {
-			model.train(trainset, prop.getModel(), sc);
+			model.train(trainset, prop.getModel(), sc, prop);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

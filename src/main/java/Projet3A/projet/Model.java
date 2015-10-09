@@ -25,6 +25,7 @@ import org.apache.spark.mllib.tree.model.DecisionTreeModel;
 import org.apache.spark.mllib.tree.model.RandomForestModel;
 import org.apache.spark.rdd.RDD;
 
+import Projet3A.Properties.ProjectProperties;
 /*import com.thales.spark.neuralnet.activationFunctions.SigmoidActivation;
 import com.thales.spark.neuralnet.algorithms.SparkNeuralNetwork;
 import com.thales.spark.neuralnet.learner.SGDLearner;
@@ -72,7 +73,7 @@ public class Model implements Serializable {
 	public int getModelType(){
 		return modeltype;
 	}
-	public void train(JavaPairRDD<String, Tuple2<Vector, Double>> trainSet,int model,JavaSparkContext sc) throws Exception{
+	public void train(JavaPairRDD<String, Tuple2<Vector, Double>> trainSet,int model,JavaSparkContext sc,ProjectProperties props) throws Exception{
 		JavaRDD<LabeledPoint> labeledTweets = trainSet.mapToPair(new PairFunction<Tuple2<String, Tuple2<Vector, Double>>, Vector, Double>() {
 			public Tuple2<Vector, Double> call(Tuple2<String, Tuple2<Vector, Double>> t) throws Exception {
 				return t._2();
@@ -83,12 +84,12 @@ public class Model implements Serializable {
 			}
 		}
 		);
-		train(labeledTweets,model,sc);
+		train(labeledTweets,model,sc,props);
 	}
 	/*
 	 * train the model (creation of the model)
 	 */
-	public void train(JavaRDD<LabeledPoint> trainSet,int model,JavaSparkContext sc) throws Exception{
+	public void train(JavaRDD<LabeledPoint> trainSet,int model,JavaSparkContext sc,ProjectProperties props) throws Exception{
 		if (trainSet.isEmpty())
 			throw new Exception("pas assez de donnÃ©es, dico trop restrictif");
 		if (model==0){
@@ -108,11 +109,11 @@ public class Model implements Serializable {
 		if (model==2){
 			modeltype=2;
 			System.out.println("Decision tree");
-			Integer numClasses = 2;
+			Integer numClasses = props.getNumClasses();
 			Map<Integer, Integer> categoricalFeaturesInfo = new HashMap<Integer, Integer>();
-			String impurity = "entropy";
-			Integer maxDepth = 5;
-			Integer maxBins = 40;
+			String impurity = props.getImpurity();
+			Integer maxDepth = props.getMaxDepth();
+			Integer maxBins = props.getMaxBins();
 			decisionTreeModel=DecisionTree.trainClassifier(trainSet, numClasses,
 					  categoricalFeaturesInfo, impurity, maxDepth, maxBins);
 			
@@ -120,14 +121,15 @@ public class Model implements Serializable {
 		if (model==3){
 			modeltype=3;
 			System.out.println("Random Forest");
-			Integer numClasses = 2;
 			HashMap<Integer, Integer> categoricalFeaturesInfo = new HashMap<Integer, Integer>();
-			Integer numTrees = 10;
-			String featureSubsetStrategy = "auto";
+			Integer numClasses = props.getNumClasses();
+			Integer numTrees = props.getNumTrees();
+			String featureSubsetStrategy = props.getFeatureSubsetStrategy();
+			
 			String impurity = "gini";
-			Integer maxDepth = 15;
-			Integer maxBins = 32;
-			Integer seed = 12345;
+			Integer maxDepth = props.getMaxDepth();
+			Integer maxBins = props.getMaxBins();
+			Integer seed = props.getSeed();
 
 			forest = RandomForest.trainClassifier(trainSet, numClasses,
 			  categoricalFeaturesInfo, numTrees, featureSubsetStrategy, impurity, maxDepth, maxBins,
