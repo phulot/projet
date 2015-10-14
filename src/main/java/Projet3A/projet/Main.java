@@ -96,10 +96,12 @@ public class Main {
 				return t.split(",");
 			}
 		});
+		final int numcols = prop.getNumCols();
 		JavaRDD<Tuple2<Double,Vector>> toreturn = databis.map(new Function<String[], Tuple2<Double, Vector>>() {
 			public Tuple2<Double, Vector> call(String[] t) throws Exception {
-					double[] tab=new double[t.length-1];
-					for (int i=0;i<t.length-1;i++) tab[i]=Double.valueOf(t[i+1]);
+				int n = Math.min(t.length-1,numcols);
+					double[] tab=new double[n];
+					for (int i=0;i<n;i++) tab[i]=Double.valueOf(t[i+1]);
 					return new Tuple2<Double,Vector>(Double.valueOf(t[0])-3,Vectors.dense(tab));
 			}
 		});
