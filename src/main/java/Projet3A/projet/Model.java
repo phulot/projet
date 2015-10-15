@@ -12,15 +12,12 @@ import java.util.Map;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.mllib.classification.LogisticRegressionWithSGD;
 import org.apache.spark.mllib.classification.LogisticRegressionModel;
 import org.apache.spark.mllib.classification.NaiveBayes;
 import org.apache.spark.mllib.classification.NaiveBayesModel;
 import org.apache.spark.mllib.classification.SVMModel;
 import org.apache.spark.mllib.classification.SVMWithSGD;
-import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.Vectors;
 import org.apache.spark.mllib.regression.LabeledPoint;
@@ -31,10 +28,8 @@ import org.apache.spark.mllib.tree.configuration.BoostingStrategy;
 import org.apache.spark.mllib.tree.model.DecisionTreeModel;
 import org.apache.spark.mllib.tree.model.GradientBoostedTreesModel;
 import org.apache.spark.mllib.tree.model.RandomForestModel;
-import org.apache.spark.rdd.RDD;
 
 import Projet3A.Properties.ProjectProperties;
-import breeze.io.TextWriter.FileWriter;
 /*import com.thales.spark.neuralnet.activationFunctions.SigmoidActivation;
 import com.thales.spark.neuralnet.algorithms.SparkNeuralNetwork;
 import com.thales.spark.neuralnet.learner.SGDLearner;
@@ -42,7 +37,6 @@ import com.thales.spark.neuralnet.lossFunctions.CrossEntropyLoss;
 import com.thales.spark.neuralnet.models.NeuralNetworkModel;
 */
 import scala.Tuple2;
-import scala.Tuple3;
 //import scala.actors.threadpool.Arrays;
 
 public class Model implements Serializable {
@@ -84,16 +78,7 @@ public class Model implements Serializable {
 		return modeltype;
 	}
 	public void train(JavaPairRDD<String, Tuple2<Vector, Double>> trainSet,int model,JavaSparkContext sc,ProjectProperties props) throws Exception{
-		JavaRDD<LabeledPoint> labeledTweets = trainSet.mapToPair(new PairFunction<Tuple2<String, Tuple2<Vector, Double>>, Vector, Double>() {
-			public Tuple2<Vector, Double> call(Tuple2<String, Tuple2<Vector, Double>> t) throws Exception {
-				return t._2();
-			}
-		}).map(new Function<Tuple2<Vector, Double>, LabeledPoint>() {
-			public LabeledPoint call(Tuple2<Vector, Double> point) throws Exception {
-				return new LabeledPoint(point._2(), point._1());
-			}
-		}
-		);
+		JavaRDD<LabeledPoint> labeledTweets = trainSet.mapToPair(t->t._2()).map(point->new LabeledPoint(point._2(), point._1()));
 		train(labeledTweets,model,sc,props);
 	}
 	/*
@@ -231,6 +216,10 @@ public class Model implements Serializable {
 				writer.print(forest.toDebugString());
 //				forest.save(sc.sc(), props.getPathToModel());
 			}
+			if (modeltype==5){
+				writer.print(boostedTree.toDebugString());
+//				boostedTree.save(sc.sc(), props.getPathToModel());
+			}
 			writer.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -246,69 +235,8 @@ public class Model implements Serializable {
 		if (modeltype==4){
 			logReg.save(sc.sc(), props.getPathToModel());
 		}
-		if (modeltype==5){
-			boostedTree.save(sc.sc(), props.getPathToModel());
-		}
 	}
 	
-	private void deleteDirectory(String Path){
-		File directory = new File(Path);
-		if(!directory.exists()){
-			 
-	           System.out.println("Directory does not exist.");
-	           System.exit(0);
-	 
-	        }else{
-	 
-	           try{
-	        	   
-	               delete(directory);
-	        	
-	           }catch(IOException e){
-	               e.printStackTrace();
-	               System.exit(0);
-	           }
-	        }
-	}
-	public static void delete(File file)
-	    	throws IOException{
-	 
-	    	if(file.isDirectory()){
-	 
-	    		//directory is empty, then delete it
-	    		if(file.list().length==0){
-	    			
-	    		   file.delete();
-	    		   System.out.println("Directory is deleted : " 
-	                                                 + file.getAbsolutePath());
-	    			
-	    		}else{
-	    			
-	    		   //list all the directory contents
-	        	   String files[] = file.list();
-	     
-	        	   for (String temp : files) {
-	        	      //construct the file structure
-	        	      File fileDelete = new File(file, temp);
-	        		 
-	        	      //recursive delete
-	        	     delete(fileDelete);
-	        	   }
-	        		
-	        	   //check the directory again, if empty then delete it
-	        	   if(file.list().length==0){
-	           	     file.delete();
-	        	     System.out.println("Directory is deleted : " 
-	                                                  + file.getAbsolutePath());
-	        	   }
-	    		}
-	    		
-	    	}else{
-	    		//if file, then delete it
-	    		file.delete();
-	    		System.out.println("File is deleted : " + file.getAbsolutePath());
-	    	}
-	    }
 	/*public JavaPairRDD<String, Tuple3<Double, Double, Double>> predict(JavaPairRDD<String, Tuple2<Vector, Double>> VectorizesTweets,double pond){
 //		List<Tuple2<String, Tuple2<Vector, Double>>> temp = VectorizesTweets.collect();
 //		VectorizesTweets.saveAsObjectFile("testSet 200000");

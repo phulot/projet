@@ -21,8 +21,6 @@ public class ProjectProperties implements Serializable{
 	Integer numIteration;
 	int numCols;
 
-
-
 	public ProjectProperties(){
 		Properties properties = new Properties();
 		File file= new File("file.properties");
@@ -52,98 +50,73 @@ public class ProjectProperties implements Serializable{
 	public Integer getNumIteration() {
 		return numIteration;
 	}
-
-
 	public void setNumIteration(Integer numIteration) {
 		this.numIteration = numIteration;
 	}
-
 	public String getPathToModel() {
 		return PathToModel;
 	}
-	
 	public void setPathToModel(String pathToModel) {
 		PathToModel = pathToModel;
 	}
-
 	public Integer getNumClasses() {
 		return numClasses;
 	}
-
 	public void setNumClasses(Integer numClasses) {
 		this.numClasses = numClasses;
 	}
-
 	public Integer getNumTrees() {
 		return numTrees;
 	}
-
 	public void setNumTrees(Integer numTrees) {
 		this.numTrees = numTrees;
 	}
-
 	public String getFeatureSubsetStrategy() {
 		return featureSubsetStrategy;
 	}
-
 	public void setFeatureSubsetStrategy(String featureSubsetStrategy) {
 		this.featureSubsetStrategy = featureSubsetStrategy;
 	}
-
 	public String getImpurity() {
 		return impurity;
 	}
-
 	public void setImpurity(String impurity) {
 		this.impurity = impurity;
 	}
-
 	public int getNumCols() {
 		return numCols;
 	}
-
 	public void setNumCols(int numcols) {
 		this.numCols = numcols;
 	}
-
 	public Integer getMaxDepth() {
 		return maxDepth;
 	}
-
 	public void setMaxDepth(Integer maxDepth) {
 		this.maxDepth = maxDepth;
 	}
-
 	public Integer getMaxBins() {
 		return maxBins;
 	}
-
 	public void setMaxBins(Integer maxBins) {
 		this.maxBins = maxBins;
 	}
-
 	public Integer getSeed() {
 		return seed;
 	}
-
 	public void setSeed(Integer seed) {
 		this.seed = seed;
 	}
-
 	public String getPathToFile() {
 		return PathToFile;
 	}
-
 	public void setPathToFile(String pathToFile) {
 		PathToFile = pathToFile;
 	}
-
 	public int getModel() {
 		return model;
 	}
-
 	public void setModel(int model) {
 		this.model = model;
 	}
-	
 }
