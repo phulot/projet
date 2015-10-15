@@ -19,6 +19,7 @@ public class ProjectProperties implements Serializable{
 	Integer seed;
 	String PathToModel;
 	Integer numIteration;
+	int numCols;
 
 
 
@@ -42,6 +43,7 @@ public class ProjectProperties implements Serializable{
 		maxDepth = Integer.valueOf(properties.getProperty("maxDepth"));
 		maxBins = Integer.valueOf(properties.getProperty("maxBins"));
 		seed = Integer.valueOf(properties.getProperty("seed"));
+		numCols = Integer.valueOf(properties.getProperty("numCols"));
 		featureSubsetStrategy = properties.getProperty("featureSubsetStrategy");
 		impurity = properties.getProperty("impurity");
 		PathToModel = properties.getProperty("PathToModel");
@@ -94,6 +96,14 @@ public class ProjectProperties implements Serializable{
 
 	public void setImpurity(String impurity) {
 		this.impurity = impurity;
+	}
+
+	public int getNumCols() {
+		return numCols;
+	}
+
+	public void setNumCols(int numcols) {
+		this.numCols = numcols;
 	}
 
 	public Integer getMaxDepth() {

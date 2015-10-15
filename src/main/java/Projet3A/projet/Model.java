@@ -1,6 +1,10 @@
 package Projet3A.projet;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +33,7 @@ import org.apache.spark.mllib.tree.model.RandomForestModel;
 import org.apache.spark.rdd.RDD;
 
 import Projet3A.Properties.ProjectProperties;
+import breeze.io.TextWriter.FileWriter;
 /*import com.thales.spark.neuralnet.activationFunctions.SigmoidActivation;
 import com.thales.spark.neuralnet.algorithms.SparkNeuralNetwork;
 import com.thales.spark.neuralnet.learner.SGDLearner;
@@ -213,17 +218,28 @@ public class Model implements Serializable {
 	}
 	
 	public void save(JavaSparkContext sc,ProjectProperties props){
+		PrintWriter writer;
+		try {
+			writer = new PrintWriter("decisiontree.txt", "UTF-8");
+			if (modeltype==2){
+				writer.print(decisionTreeModel.toDebugString());
+//				decisionTreeModel.save(sc.sc(), props.getPathToModel());
+			}
+			if (modeltype==3){
+				writer.print(forest.toDebugString());
+//				forest.save(sc.sc(), props.getPathToModel());
+			}
+			writer.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 		if (modeltype==0){
 			NBmodel.save(sc.sc(), props.getPathToModel());
 		}
 		if (modeltype==1){
 			SVMmodel.save(sc.sc(), props.getPathToModel());
-		}
-		if (modeltype==2){
-			decisionTreeModel.save(sc.sc(), props.getPathToModel());
-		}
-		if (modeltype==3){
-			forest.save(sc.sc(), props.getPathToModel());
 		}
 		if (modeltype==4){
 			logReg.save(sc.sc(), props.getPathToModel());
